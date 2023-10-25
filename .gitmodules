@@ -1,0 +1,3 @@
+[submodule "src/project1-libcommon"]
+	path = src/project1-libcommon
+	url = https://github.com/thresh3x/project1-libcommon.git
