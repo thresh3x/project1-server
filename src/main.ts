@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import * as session from 'express-session';
 import { Request, Response, NextFunction } from 'express';
 import * as cors from 'cors';
-import { ResponseChange } from './common/response';
+// import { ResponseChange } from './common/response';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
@@ -36,10 +36,10 @@ async function bootstrap() {
         secret: 'thresh',
         rolling: true,
         name: 'thresh.id',
-        cookie: { maxAge: 999999 },
+        cookie: { maxAge: 9999},
       }),
     );
-  app.useGlobalInterceptors(new ResponseChange());
+  // app.useGlobalInterceptors(new ResponseChange());
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(3000);
 }

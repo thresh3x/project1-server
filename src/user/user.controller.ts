@@ -20,6 +20,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Public } from 'src/common/public.decorator';
 
 @ApiTags('user接口')
 @Controller('user')
@@ -27,15 +28,23 @@ import {
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Public()
   @Get('code') // 获取验证码图片
   @ApiOperation({ summary: '获取验证码图片', description: '获取验证码图片' })
   createCaptcha(@Req() req, @Res() res) {
     this.userService.createCaptcha(req, res);
   }
 
-  @Post('create') // 验证用户
-  createUser(@Req() req, @Body() body) {
-    return this.userService.createUser(req, body);
+  @Public()
+  @Post('signin') // 注册
+  createUser(@Req() req, @Body() createUserDto: CreateUserDto) {
+    return this.userService.signup(req, createUserDto);
+  }
+
+  @Public()
+  @Post('login')
+  login(@Body() createUserDto: CreateUserDto) {
+    return this.userService.login(createUserDto);
   }
 
   @Post()
@@ -50,10 +59,11 @@ export class UserController {
     return this.userService.findAll(req.query);
   }
 
-  @Get(':id')
-  @ApiParam({ name: 'id', required: true })
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  @Public()
+  @Get('/one')
+  @ApiParam({ name: 'keyword', required: true })
+  findOne(@Req() req) {
+    return this.userService.findOne(req.query);
   }
 
   @Patch(':id')
