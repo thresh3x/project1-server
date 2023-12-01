@@ -1,9 +1,12 @@
+import { TalkPhoto } from 'src/talk_photo/entities/talk_photo.entity';
 import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 
 @Entity()
@@ -24,4 +27,6 @@ export class Talk {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+  @OneToMany(() => TalkPhoto, (talkPhoto) => talkPhoto.talk)
+  talkImgList: TalkPhoto[];
 }

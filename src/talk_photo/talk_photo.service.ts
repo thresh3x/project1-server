@@ -14,7 +14,6 @@ export class TalkPhotoService {
 
   create(createTalkPhotoDto: CreateTalkPhotoDto) {
     const data = new TalkPhoto();
-    data.talk_id = createTalkPhotoDto.talk_id;
     data.url = createTalkPhotoDto.url;
     return this.talkPhoto.save(data);
   }

@@ -59,6 +59,11 @@ export class UserController {
     return this.userService.findAll(req.query);
   }
 
+  @Get('role')
+  findByRole(@Req() req) {
+    return this.userService.findByRole(req.query);
+  }
+
   @Public()
   @Get('/one')
   @ApiParam({ name: 'keyword', required: true })
@@ -66,6 +71,7 @@ export class UserController {
     return this.userService.findOne(req.query);
   }
 
+  @Public()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.userService.update(+id, updateUserDto);

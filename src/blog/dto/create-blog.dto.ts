@@ -1,16 +1,24 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Category } from '../entities/articleCategory.entity';
+import { Tags } from '../entities/articleTag.entity';
 
 export class CreateBlogDto {
   @ApiProperty({ example: 'title' })
   title: string;
   @ApiProperty()
-  categoryId: number;
+  category: Category;
+  @ApiProperty()
+  tags: Tags[];
   @ApiProperty()
   content: string;
+  @ApiProperty()
+  description: string;
   @ApiProperty({ nullable: true })
-  background: string;
+  cover: string;
   @ApiProperty({ default: 2 })
   isTop: number;
+  @ApiProperty()
+  author_id: number;
   @ApiProperty({ default: 1 })
   status: number;
 }

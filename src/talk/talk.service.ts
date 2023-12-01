@@ -5,25 +5,28 @@ import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Talk } from './entities/talk.entity';
 import { Repository } from 'typeorm';
+import { TalkPhoto } from 'src/talk_photo/entities/talk_photo.entity';
 
 @ApiTags('talk接口')
 @Injectable()
 export class TalkService {
   constructor(
     @InjectRepository(Talk) private readonly talk: Repository<Talk>,
-  ) {}
+    @InjectRepository(TalkPhoto) private readonly talkPhoto: Repository<TalkPhoto>,
+  ) { }
 
-  create(createTalkDto: CreateTalkDto) {
-    const data = new Talk();
-    data.content = createTalkDto.content;
-    data.is_top = createTalkDto.is_top;
-    data.status = createTalkDto.status;
-    data.user_id = createTalkDto.user_id;
-    return this.talk.save(data);
+  async create(createTalkDto: CreateTalkDto) {
+    const talk = await this.talk.save(createTalkDto);
+    const { talkImgList } = createTalkDto;
+    for (let i = 0; i < talkImgList.length; i++) {
+      await this.talkPhoto.save({ url: talkImgList[i].url, talk: talk });
+    }
+    return talk
   }
 
   async findAll(query: { page: number; pageSize: number }) {
     const data = await this.talk.find({
+      relations: ['talkImgList'],
       order: {
         id: 'DESC',
       },
@@ -38,14 +41,47 @@ export class TalkService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} talk`;
+    return this.talk.findOne({
+      relations: ['talkImgList'],
+      where: {
+        id
+      }
+    });
   }
 
-  update(id: number, updateTalkDto: UpdateTalkDto) {
-    return this.talk.update(id, updateTalkDto);
+  async update(id: number, updateTalkDto: UpdateTalkDto) {
+    const update = await this.talk.findOne({ where: { id } });
+    updateTalkDto.content && (update.content = updateTalkDto.content);
+    updateTalkDto.is_top && (update.is_top = updateTalkDto.is_top);
+    updateTalkDto.likes && (update.likes = updateTalkDto.likes);
+    updateTalkDto.status && (update.status = updateTalkDto.status);
+    if (updateTalkDto.talkImgList) {
+      const photos = await this.talkPhoto.find({
+        where: {
+          talk: update
+        }
+      })
+      photos.forEach(async item => {
+        await this.talkPhoto.delete(item.id)
+      })
+      update.talkImgList.forEach(async item => {
+        await this.talkPhoto.save({ url: item.url, talk: update })
+      });
+    }
+    updateTalkDto.user_id && (update.user_id = updateTalkDto.user_id);
+    await this.talk.save(update);
+    return {
+      affected: 1,
+    }
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const talk = await this.talk.findOne({relations: ['talkImgList'] ,where: {id}})
+     
+    const { talkImgList } = talk
+    talkImgList.forEach(async item => {
+      await this.talkPhoto.delete(item.id)
+    })
     return this.talk.delete(id);
   }
 }

@@ -1,3 +1,5 @@
+import { TalkPhoto } from "src/talk_photo/entities/talk_photo.entity";
+
 export class CreateTalkDto {
   user_id: number;
   content: string;
@@ -6,4 +8,5 @@ export class CreateTalkDto {
   //是否置顶 1 置顶 2 不置顶
   is_top: number;
   likes: number;
+  talkImgList: TalkPhoto[];
 }

@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Article } from './article.entity';
 
 @Entity()
@@ -7,6 +7,10 @@ export class Category {
   id: number;
   @Column()
   name: string;
-  @OneToOne(() => Article, (article) => article.categoryId)
-  article: Article;
+  @OneToMany(() => Article, (article) => article.category)
+  article: Article[];
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+  @UpdateDateColumn({ type: 'timestamp' })
+  updateAt: Date;
 }

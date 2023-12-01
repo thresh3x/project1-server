@@ -43,6 +43,11 @@ export class BlogController {
     return this.blogService.findOne(+id);
   }
 
+  @Get('title/exist')
+  titleExist(@Req() req) {
+    return this.blogService.titleExist(req.query)
+  }
+
   @Patch('article/:id')
   @ApiOperation({ summary: '改article:id' })
   update(@Param('id') id: string, @Body() updateBlogDto: UpdateBlogDto) {
@@ -56,23 +61,22 @@ export class BlogController {
   }
 
   @Post('tags') // 添加tags
-  addTags(@Body() params: { tags: string[]; articleId: number }) {
-    return this.blogService.addTags(params);
+  addTag(@Body() params: { name: string }) {
+    return this.blogService.addTag(params);
   }
 
   @Get('tags')
-  @ApiQuery({ name: 'page', description: '分页信息' })
   findTags(@Req() req) {
-    this.blogService.findTags(req.query);
+    return this.blogService.findTags(req.query);
   }
 
-  @Delete('tags:id')
-  removeTags(@Param('id') id: string) {
-    return this.blogService.removeTags(+id);
+  @Delete('tags')
+  removeTags(@Req() req) {
+    return this.blogService.removeTags(req);
   }
 
-  @Patch('tags:id')
-  updateTags(@Param('id') id: string, params: { tags: string }) {
+  @Patch('tags/:id')
+  updateTags(@Param('id') id: string, @Body() params: { name: string }) {
     return this.blogService.updateTags(+id, params);
   }
 
@@ -84,16 +88,16 @@ export class BlogController {
   @Get('category')
   @ApiQuery({ name: 'page', description: '分页信息' })
   findCate(@Req() req) {
-    this.blogService.findCate(req.query);
+    return this.blogService.findCate(req.query);
   }
 
-  @Delete('category:id')
-  removeCate(@Param('id') id: string) {
-    return this.blogService.removeCate(+id);
+  @Delete('category')
+  removeCate(@Req() req) {
+    return this.blogService.removeCate(req);
   }
 
-  @Patch('tags:id')
-  updateCate(@Param('id') id: string, params: { name: string }) {
+  @Patch('category/:id')
+  updateCate(@Param('id') id: string, @Body() params: { name: string }) {
     return this.blogService.updateCate(+id, params);
   }
 }

@@ -1,7 +1,9 @@
+import { Album } from 'src/album/entities/album.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,13 +13,13 @@ export class Photo {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
-  ablum_id: number;
-  @Column()
   url: string;
-  @Column() // 1 正常 2 回收站
+  @Column({ default: 1 }) // 1 正常 2 回收站
   status: number;
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+  @ManyToOne(() => Album, (album) => album.photos)
+  album: Album;
 }

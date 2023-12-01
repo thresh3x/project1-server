@@ -7,6 +7,9 @@ import * as cors from 'cors';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
+import {NestExpressApplication} from '@nestjs/platform-express';
+import { join } from 'path';
+
 // 白名单，还可以做鉴权
 // const whiteList = [''];
 function MiddleWareAll(req: Request, res: Response, next: NextFunction) {
@@ -18,7 +21,7 @@ function MiddleWareAll(req: Request, res: Response, next: NextFunction) {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const options = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('thresh接口文档')
@@ -36,11 +39,14 @@ async function bootstrap() {
         secret: 'thresh',
         rolling: true,
         name: 'thresh.id',
-        cookie: { maxAge: 9999},
+        cookie: { maxAge: 99999},
       }),
     );
   // app.useGlobalInterceptors(new ResponseChange());
   app.useGlobalPipes(new ValidationPipe());
+  app.useStaticAssets(join(__dirname, 'images'), {
+    prefix: "/image"
+  })
   await app.listen(3000);
 }
 bootstrap();

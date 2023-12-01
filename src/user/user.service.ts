@@ -5,7 +5,7 @@ import { Req, Res, Body } from '@nestjs/common';
 import * as svgCaptcha from 'svg-captcha';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt/dist';
 import * as bcrypt from 'bcryptjs';
 let code:string
@@ -112,15 +112,36 @@ export class UserService {
     return this.user.save(data);
   }
 
-  async findAll(query: { page: number; pageSize: number }) {
+  async findAll(query: { page: number; pageSize: number;}) {
     const data = await this.user.find({
       order: {
-        id: 'DESC',
+        // id: 'DESC',
       },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
     });
     const total = await this.user.count();
+    return {
+      data,
+      total,
+    };
+  }
+
+  async findByRole(query: {page: number; pageSize: number; keyWord: string; role: number}) {
+    const data = await this.user.find({
+      where : {
+        nick_name: ILike(`%${query.keyWord}%`),
+        role: query.role && +query.role
+      },
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+    })
+    const total = await this.user.count({
+      where: {
+        nick_name: ILike(`%${query.keyWord}%`),
+        role: query.role
+      }
+    });
     return {
       data,
       total,
@@ -134,8 +155,26 @@ export class UserService {
       }
     });
   }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
+  
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    if (updateUserDto.password) {
+      const old = await this.findOne({keyword: updateUserDto.username})
+      const compareRes: boolean = bcrypt.compareSync(
+        updateUserDto.oldPassword,
+        old.password,
+      );
+      if (!compareRes) {
+        return {
+          status: 2,
+          message: 'Old password is wrong'
+        }
+      }
+      updateUserDto.password = bcrypt.hashSync(
+        updateUserDto.password,
+        bcrypt.genSaltSync(10),
+      )
+      delete updateUserDto.oldPassword
+    }
     return this.user.update(id, updateUserDto);
   }
 

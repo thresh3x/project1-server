@@ -1,9 +1,11 @@
+import { Photo } from 'src/photo/entities/photo.entity';
 import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity()
@@ -20,4 +22,6 @@ export class Album {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+  @OneToMany(() => Photo, (photo) => photo.album)
+  photos: Photo[];
 }

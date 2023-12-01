@@ -5,9 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Generated,
-  OneToMany,
-  OneToOne,
   JoinColumn,
+  ManyToMany,
+  ManyToOne,
+  JoinTable,
 } from 'typeorm';
 import { Tags } from './articleTag.entity';
 import { Category } from './articleCategory.entity';
@@ -20,13 +21,14 @@ export class Article {
   uuid: string;
   @Column()
   title: string;
-  @OneToOne(() => Category, (category) => category.article)
-  @JoinColumn()
-  categoryId: number;
+  @Column()
+  author_id: number;
   @Column()
   content: string;
+  @Column()
+  description: string;
   @Column({ nullable: true })
-  background: string;
+  cover: string;
   @Column({ default: 2 })
   isTop: number;
   @Column({ default: 1 })
@@ -39,7 +41,9 @@ export class Article {
   createdAt: Date;
   @UpdateDateColumn({ type: 'timestamp' })
   updateAt: Date;
-  @OneToMany(() => Tags, (tag) => tag.article)
-  @JoinColumn()
+  @ManyToMany(() => Tags)
+  @JoinTable()
   tags: Tags[];
+  @ManyToOne(() => Category, (category) => category.article)
+  category: Category;
 }

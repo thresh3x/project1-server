@@ -4,23 +4,27 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Album } from './entities/album.entity';
 import { Repository } from 'typeorm';
+import { Photo } from 'src/photo/entities/photo.entity';
 
 @Injectable()
 export class AlbumService {
   constructor(
     @InjectRepository(Album) private readonly album: Repository<Album>,
+    @InjectRepository(Photo) private readonly photo: Repository<Photo>,
   ) {}
 
-  create(createAlbumDto: CreateAlbumDto) {
-    const data = new Album();
-    data.cover = createAlbumDto.cover;
-    data.description = createAlbumDto.description;
-    data.name = createAlbumDto.name;
-    return this.album.save(data);
+  async create(createAlbumDto: CreateAlbumDto) {
+    const album = await this.album.save(createAlbumDto);
+    const { photos } = createAlbumDto;
+    for (let i = 0; i < photos.length; i++) {
+      await this.photo.save({ url: photos[i].url, album: album });
+    }
+    return album;
   }
 
   async findAll(query: { page: number; pageSize: number }) {
     const data = await this.album.find({
+      relations: ['photos'],
       order: {
         id: 'DESC',
       },
@@ -35,14 +39,47 @@ export class AlbumService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} album`;
+    return this.album.find({
+      relations: ['photos'],
+      where: {
+        id
+      }
+    });
   }
 
-  update(id: number, updateAlbumDto: UpdateAlbumDto) {
-    return this.album.update(id, updateAlbumDto);
+  async update(id: number, updateAlbumDto: UpdateAlbumDto) {
+    const update = await this.album.findOne({where: { id }});
+    updateAlbumDto.cover && (update.cover = updateAlbumDto.cover);
+    updateAlbumDto.description && (update.description = updateAlbumDto.description);
+    updateAlbumDto.name && (update.name = updateAlbumDto.name);
+    if (updateAlbumDto.photos.length) {
+      const photos = await this.photo.find({
+        where: {
+          album: update
+        }
+      });
+      photos.length && (photos.forEach(async item => {
+        await this.photo.delete(item.id);
+      }));
+      update.photos && (update.photos.forEach(async item => {
+        await this.photo.save({ url: item.url, album: update });
+      }));
+    }
+    await this.album.save(update);
+    return {
+      affected: 1,
+    };
   }
 
-  remove(id: number) {
+  async remove(id: number) {
+    const album = await this.album.findOne({
+      relations: ['photos'],
+      where: { id }
+    });
+    const { photos } = album;
+    photos.forEach(async item => {
+      await this.photo.delete(item.id);
+    })
     return this.album.delete(id);
   }
 }

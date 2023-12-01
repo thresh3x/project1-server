@@ -13,36 +13,23 @@ export class PhotoService {
 
   create(createPhotoDto: CreatePhotoDto) {
     const data = new Photo();
-    data.ablum_id = createPhotoDto.ablum_id;
     data.status = createPhotoDto.status;
     data.url = createPhotoDto.url;
+    data.album = createPhotoDto.album;
     return this.photo.save(data);
   }
 
   async findAll(query: { album_id: number; page: number; pageSize: number }) {
-    const data = await this.photo.find({
-      where: {
-        ablum_id: query.album_id,
-      },
-      order: {
-        id: 'DESC',
-      },
-      skip: (query.page - 1) * query.pageSize,
-      take: query.pageSize,
-    });
-    const total = await this.photo.count({
-      where: {
-        ablum_id: query.album_id,
-      },
-    });
-    return {
-      data,
-      total,
-    };
+    return 'all';
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} photo`;
+    const data = this.photo.find({
+      where: {
+        id: id,
+      },
+    });
+    return data;
   }
 
   update(id: number, updatePhotoDto: UpdatePhotoDto) {

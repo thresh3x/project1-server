@@ -1,12 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
-import { Article } from './article.entity';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn,} from 'typeorm';
 
 @Entity()
 export class Tags {
   @PrimaryGeneratedColumn()
   id: number;
   @Column()
-  tags: string;
-  @ManyToOne(() => Article, (article) => article.tags)
-  article: Article;
+  name: string;
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+  @UpdateDateColumn({ type: 'timestamp' })
+  updateAt: Date;
 }

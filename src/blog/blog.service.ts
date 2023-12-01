@@ -17,19 +17,12 @@ export class BlogService {
   ) {}
 
   create(createBlogDto: CreateBlogDto) {
-    const data = new Article();
-    data.title = createBlogDto.title;
-    data.categoryId = createBlogDto.categoryId;
-    data.content = createBlogDto.content;
-    data.isTop = createBlogDto.isTop;
-    data.status = createBlogDto.status;
-    data.background = createBlogDto.background;
-    return this.article.save(data);
+    return this.article.save(createBlogDto); // return Article
   }
 
   async findAll(query: { keyWord: string; page: number; pageSize: number }) {
     const data = await this.article.find({
-      relations: ['tags'], // 绑定关联关系
+      relations: ['tags', 'category'], // 绑定关联关系
       where: {
         content: Like(`%${query.keyWord}%`),
       },
@@ -52,38 +45,72 @@ export class BlogService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} blog`;
+    return this.article.findOne({
+      relations: ['tags', 'category'],
+      where: {
+        id
+      }
+    });
   }
 
-  update(id: number, updateBlogDto: UpdateBlogDto) {
-    return this.article.update(id, updateBlogDto);
+  async titleExist(query: {id: number; title: string}) {
+    const one: Article[] = await this.article.find({
+      where: {
+        title: query.title
+      }
+    })
+    if (one.length) {
+      return {
+        result: 'title exit'
+      }
+    }
+    return {
+      code: 200
+    }
+  }
+
+  async update(id: number, updateBlogDto: UpdateBlogDto) {
+    const update = await this.article.findOne({where: {id}})
+    updateBlogDto.author_id && (update.author_id = updateBlogDto.author_id);
+    updateBlogDto.category && (update.category = updateBlogDto.category);
+    updateBlogDto.content && (update.content = updateBlogDto.content);
+    updateBlogDto.cover && (update.cover = updateBlogDto.cover);
+    updateBlogDto.description && (update.description = updateBlogDto.description);
+    updateBlogDto.isTop && (update.isTop = updateBlogDto.isTop);
+    updateBlogDto.status && (update.status = updateBlogDto.status);
+    updateBlogDto.tags && (update.tags = updateBlogDto.tags);
+    updateBlogDto.title && (update.title = updateBlogDto.title);
+    await this.article.save(update);
+    return {
+      affected: 1
+    }
   }
 
   remove(id: number) {
     return this.article.delete(id);
   }
 
-  async addTags(@Body() params: { tags: string[]; articleId: number }) {
-    const info = await this.article.findOne({
-      where: { id: params.articleId },
-    });
+  async addTag(@Body() params: { name:string }) {
+    // const info = await this.article.findOne({
+    //   where: { id: params.articleId },
+    // });
 
-    const tagList: Tags[] = [];
-    for (let i = 0; i < params.tags.length; i++) {
-      const T = new Tags();
-      T.tags = params.tags[i];
+    // const tagList: Tags[] = [];
+    // for (let i = 0; i < params.tags.length; i++) {
+    //   const T = new Tags();
+    //   T.name = params.tags[i];
 
-      await this.tags.save(T);
-      tagList.push(T);
-    }
-    info.tags = tagList;
-    return this.article.save(info);
+    //   await this.tags.save(T);
+    //   tagList.push(T);
+    // }
+    // info.tags = tagList;
+    return this.tags.save({name: params.name});
   }
 
-  async findTags(query: { page: number; pageSize: number }) {
+  async findTags(query: { keyWord: string ,page: number; pageSize: number }) {
     const data = await this.tags.find({
-      order: {
-        id: 'DESC',
+      where: {
+        name: Like(`%${query.keyWord}%`)
       },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
@@ -95,12 +122,20 @@ export class BlogService {
     };
   }
 
-  removeTags(id: number) {
-    return this.tags.delete(id);
+  removeTags(query: any) {
+    query.query.idList.forEach(id => {
+      this.tags.delete(+id)
+    })
+    return {
+      code: 200,
+      message: 'delete tags success'
+    };
   }
 
-  updateTags(id: number, params: { tags: string }) {
-    return this.tags.update(id, params);
+  updateTags(id: number, @Body() params: { name: string }) {
+    console.log(params);
+    
+    return this.tags.update(id, {name: params.name});
   }
 
   addCate(@Body() params: { name: string }) {
@@ -109,10 +144,10 @@ export class BlogService {
     return this.category.save(data);
   }
 
-  async findCate(query: { page: number; pageSize: number }) {
+  async findCate(query: { keyWord: string, page: number , pageSize: number }) {
     const data = await this.category.find({
-      order: {
-        id: 'DESC',
+      where: {
+        name: Like(`%${query.keyWord}%`)
       },
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
@@ -124,11 +159,17 @@ export class BlogService {
     };
   }
 
-  removeCate(id: number) {
-    return this.category.delete(id);
+  removeCate(query: any) {
+    query.query.idList.forEach(id => {
+      this.category.delete(+id)
+    })
+    return {
+      code: 200,
+      message: 'delete tags success'
+    };
   }
 
-  updateCate(id: number, params: { name: string }) {
+  updateCate(id: number, @Body() params: { name: string }) {
     return this.category.update(id, params);
   }
 }

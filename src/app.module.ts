@@ -14,6 +14,7 @@ import { TalkModule } from './talk/talk.module';
 import { TalkPhotoModule } from './talk_photo/talk_photo.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/jwt-auth-grard';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { JwtAuthGuard } from './common/jwt-auth-grard';
     AlbumModule,
     TalkModule,
     TalkPhotoModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
